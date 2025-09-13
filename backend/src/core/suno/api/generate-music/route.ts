@@ -1,27 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { Request, Response, Router } from "express";
 
-export async function POST(request: NextRequest) {
+const router = Router();
+
+// Generate music endpoint
+router.post('/generate', async (req: Request, res: Response) => {
   try {
-    const { prompt, tags, makeInstrumental } = await request.json();
-
-    if (!prompt || prompt.trim().length === 0) {
-      return NextResponse.json(
-        { error: "Prompt is required" },
-        { status: 400 }
-      );
-    }
+    const { prompt, tags, make_instrumental } = req.body;
 
     const apiKey = process.env.SUNO_API_KEY;
     if (!apiKey) {
-      console.error("SUNO_API_KEY not found in environment variables");
-      return NextResponse.json(
-        { error: "API key not configured" },
-        { status: 500 }
-      );
+      return res.status(500).json({ error: "API key not configured" });
     }
 
-    // Generate song using Suno HackMIT API
-    const generateResponse = await fetch(
+    const response = await fetch(
       "https://studio-api.prod.suno.com/api/v2/external/hackmit/generate",
       {
         method: "POST",
@@ -31,49 +22,115 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           topic: prompt,
-          tags: tags || undefined,
-          make_instrumental: makeInstrumental || false,
+          tags: tags,
+          make_instrumental: make_instrumental || false,
         }),
       }
     );
 
-    if (!generateResponse.ok) {
-      const errorText = await generateResponse.text();
-      console.error("Suno API generation error:", errorText);
-      return NextResponse.json(
-        { error: "Failed to start song generation" },
-        { status: generateResponse.status }
-      );
+    if (!response.ok) {
+      const errorText = await response.text();
+      return res.status(response.status).json({ error: "Generation failed", details: errorText });
     }
 
-    const clip = await generateResponse.json();
-    console.log("Suno API response:", JSON.stringify(clip, null, 2));
-
-    // The Suno HackMIT generate endpoint returns a single clip object
-    if (!clip || !clip.id) {
-      console.error("Invalid response format:", clip);
-      return NextResponse.json(
-        { error: "Invalid response from Suno API" },
-        { status: 500 }
-      );
-    }
-
-    // Return the clip for polling (as an array for consistency with frontend)
-    return NextResponse.json({
-      success: true,
-      clips: [
-        {
-          id: clip.id,
-          status: clip.status,
-          created_at: clip.created_at,
-        },
-      ],
-    });
+    const clip = await response.json();
+    return res.json({ success: true, clip_id: clip.id, status: clip.status });
   } catch (error) {
     console.error("Generate music error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return res.status(500).json({ error: "Internal server error" });
   }
-}
+});
+
+// Check clip status endpoint
+router.post('/status', async (req: Request, res: Response) => {
+  try {
+    const { clipIds } = req.body;
+
+    if (!clipIds || !Array.isArray(clipIds) || clipIds.length === 0) {
+      return res.status(400).json({ error: "Clip IDs are required" });
+    }
+
+    const apiKey = process.env.SUNO_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: "API key not configured" });
+    }
+
+    const statusResponse = await fetch(
+      `https://studio-api.prod.suno.com/api/v2/external/hackmit/clips?ids=${clipIds.join(",")}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      }
+    );
+
+    if (!statusResponse.ok) {
+      const errorText = await statusResponse.text();
+      console.error("Suno API status check error:", errorText);
+      return res.status(statusResponse.status).json({
+        error: "Failed to check generation status",
+        details: errorText
+      });
+    }
+
+    const clips = await statusResponse.json();
+
+    return res.json({
+      success: true,
+      clips: clips.map((clip: any) => ({
+        id: clip.id,
+        status: clip.status,
+        title: clip.title,
+        audio_url: clip.audio_url,
+        video_url: clip.video_url,
+        image_url: clip.image_url,
+        created_at: clip.created_at,
+        metadata: {
+          duration: clip.metadata?.duration,
+          tags: clip.metadata?.tags,
+          prompt: clip.metadata?.prompt,
+          error_type: clip.metadata?.error_type,
+          error_message: clip.metadata?.error_message,
+        },
+      })),
+    });
+  } catch (error) {
+    console.error("Check status error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Get single clip endpoint
+router.get('/clips/:clip_id', async (req: Request, res: Response) => {
+  try {
+    const { clip_id } = req.params;
+    const apiKey = process.env.SUNO_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: "API key not configured" });
+    }
+
+    const response = await fetch(
+      `https://studio-api.prod.suno.com/api/v2/external/hackmit/clips/${clip_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return res.status(response.status).json({ error: "Failed to fetch clip", details: errorText });
+    }
+
+    const clip = await response.json();
+    return res.json(clip);
+  } catch (error) {
+    console.error("Get clip error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+export default router;
