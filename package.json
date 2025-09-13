@@ -1,0 +1,31 @@
+{
+  "name": "hackmit-smart-glasses-music",
+  "version": "1.0.0",
+  "description": "Smart glasses music generation system with real-time scene analysis",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "smart-glasses",
+    "mobile-app",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:glasses\" \"npm run dev:mobile\"",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:glasses": "npm run dev --workspace=smart-glasses",
+    "dev:mobile": "npm run dev --workspace=mobile-app",
+    "build": "npm run build --workspaces",
+    "clean": "npm run clean --workspaces",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "install:all": "npm install --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

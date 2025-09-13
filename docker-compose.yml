@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - WS_PORT=3002
+    env_file:
+      - .env
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      - redis
+    networks:
+      - hackmit-network
+
+  smart-glasses:
+    build:
+      context: ./smart-glasses
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_BACKEND_URL=http://localhost:3001
+      - VITE_WS_URL=ws://localhost:3002
+    volumes:
+      - ./smart-glasses/src:/app/src
+      - ./smart-glasses/public:/app/public
+    networks:
+      - hackmit-network
+
+  mobile-app:
+    build:
+      context: ./mobile-app
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - VUE_APP_BACKEND_URL=http://localhost:3001
+      - VUE_APP_WS_URL=ws://localhost:3002
+    volumes:
+      - ./mobile-app/src:/app/src
+      - ./mobile-app/public:/app/public
+    networks:
+      - hackmit-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hackmit-network
+
+volumes:
+  redis_data:
+
+networks:
+  hackmit-network:
+    driver: bridge
