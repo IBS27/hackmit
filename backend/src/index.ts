@@ -56,20 +56,41 @@ app.post('/api/scene/analyze', async (req, res) => {
 
     // Convert base64 to buffer and add to image buffer service
     const imageBuffer = Buffer.from(imageBase64, 'base64');
-    const bufferedImage = await imageBufferService.addImage(
-      imageBuffer,
-      deviceId,
-      mimeType || 'image/jpeg',
-      userId,
-      {
-        compress: true,
-        quality: 85,
-        resize: { width: 1024, height: 768 } // Optimize for processing
-      }
-    );
+
+    let bufferedImage;
+    try {
+      bufferedImage = await imageBufferService.addImage(
+        imageBuffer,
+        deviceId,
+        mimeType || 'image/jpeg',
+        userId,
+        {
+          compress: true,
+          quality: 85,
+          resize: { width: 1024, height: 768 } // Optimize for processing
+        }
+      );
+    } catch (imageError: any) {
+      console.warn(`⚠️ Failed to process image from device ${deviceId}:`, imageError?.message || imageError);
+      // Return success but with warning - this allows the photo capture loop to continue
+      return res.json({
+        success: true,
+        warning: 'Image processing failed but capture continues',
+        error: imageError.message,
+        deviceId,
+        timestamp: new Date().toISOString()
+      });
+    }
 
     // Check if scene has changed significantly
-    const sceneChanged = await imageBufferService.detectSceneChange(deviceId);
+    let sceneChanged;
+    try {
+      sceneChanged = await imageBufferService.detectSceneChange(deviceId);
+    } catch (sceneError: any) {
+      console.warn(`⚠️ Scene detection failed for device ${deviceId}:`, sceneError?.message || sceneError);
+      // Continue with processing assuming scene changed
+      sceneChanged = true;
+    }
 
     if (!sceneChanged) {
       console.log('⏩ Scene unchanged, skipping analysis');
