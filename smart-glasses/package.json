@@ -13,19 +13,25 @@
     "preview": "bunx vite preview"
   },
   "dependencies": {
+    "@fontsource/arimo": "^5.2.7",
+    "@fontsource/fredoka": "^5.2.9",
+    "@fontsource/inter": "^5.2.7",
+    "@fontsource/libre-franklin": "^5.2.7",
+    "@fontsource/nunito": "^5.2.6",
     "@mentra/react": "^2.0.2",
     "@mentra/sdk": "latest",
     "ejs": "^3.1.10",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
-    "typescript": "^5.6.2",
-    "@types/node": "^20.0.0",
     "@types/bun": "latest",
+    "@types/node": "^20.0.0",
     "@types/react": "^18.3.7",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.2",
+    "typescript": "^5.6.2",
     "vite": "^5.4.0"
   }
 }

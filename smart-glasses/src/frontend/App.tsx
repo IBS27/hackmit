@@ -91,8 +91,8 @@ export default function App() {
       <h1 className="title">atmosphere</h1>
 
       {/* Status indicator */}
-      <div style={{ textAlign: 'center', marginBottom: '10px', fontSize: '14px', opacity: 0.7 }}>
-        {isLoading ? '🔄 Loading...' : musicData ? '🎵 Connected' : '⏸️ No music yet'}
+     <div className="status">
+     {isLoading ? '🔄 Loading...' : musicData ? '🎵 Connected' : '⏸️ No music yet'}
       </div>
 
       <div className="cover-container" onClick={togglePlay} role="button" aria-label="Play/Pause">
