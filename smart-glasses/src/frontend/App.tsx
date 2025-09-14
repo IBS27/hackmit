@@ -1,6 +1,14 @@
 import React, { useRef, useState, useEffect } from "react";
 import "./index.css";
 
+// Import Google Fonts
+if (typeof document !== 'undefined') {
+  const link = document.createElement('link');
+  link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap';
+  link.rel = 'stylesheet';
+  document.head.appendChild(link);
+}
+
 interface MusicData {
   musicUrl: string;
   imageUrl?: string;
@@ -97,18 +105,18 @@ export default function App() {
 
       <div className="cover-container" onClick={togglePlay} role="button" aria-label="Play/Pause">
         <img
-          src={musicData?.imageUrl || "https://m.media-amazon.com/images/I/51a54dWdnBL._UF1000,1000_QL80_.jpg"}
+          src={musicData?.imageUrl || "https://media.istockphoto.com/id/1431567498/vector/vector-illustration-of-musical-notes-on-white-background.jpg?s=612x612&w=0&k=20&c=E4Qx8E7OJm-itMPylpaZhNIU8mkJQt5XctWlKLLa1I8="}
           alt="Generated cover"
           className="cover"
         />
         <div className="overlay">
           {isLoading
-            ? "⏳ Loading..."
+            ? "⏳"
             : !musicData
-            ? "🎵 Waiting for music..."
+            ? "♪"
             : isPlaying
-            ? "❚❚ Pause"
-            : "▶ Play"
+            ? "⏸"
+            : "▶"
           }
         </div>
       </div>
@@ -116,7 +124,7 @@ export default function App() {
       <p className="desc">
         {isLoading
           ? "Loading music from smart glasses..."
-          : musicData?.sceneDescription || "Waiting for scene analysis..."}
+          : musicData?.prompt || "Waiting for music prompt..."}
       </p>
 
       {/* Music info */}

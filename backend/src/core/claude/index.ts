@@ -54,14 +54,12 @@ export class ClaudeService {
             },
             {
               type: 'text',
-              text: `Analyze this image and create a music prompt for Suno AI music generation that will be 1-2 minutes long.
+              text: `Analyze this image and create a music prompt for Suno AI music generation.
 
 Your task:
 1. Analyze the scene/environment in the image
 2. Create appropriate music prompt for the context
 3. Decide whether lyrics or instrumental music would be better
-
-DURATION: The generated song should be 1-2 minutes long (not longer).
 
 INSTRUMENTAL vs LYRICS DECISION:
 - Use INSTRUMENTAL for: work/study environments, libraries, offices, meditation spaces, nature scenes, peaceful settings, background ambiance
@@ -69,17 +67,17 @@ INSTRUMENTAL vs LYRICS DECISION:
 
 Format your response as JSON:
 {
-  "prompt": "[style/genre], [mood], [tempo], [key instruments], 1-2 minutes",
+  "prompt": "[style/genre], [mood], [tempo], [key instruments]",
   "makeInstrumental": true/false,
   "sceneDescription": "brief description of what you see"
 }
 
 Examples:
-- Coffee shop → {"prompt": "smooth jazz, cozy, medium tempo, piano and light drums, 1-2 minutes", "makeInstrumental": false, "sceneDescription": "social coffee shop setting"}
-- Library/study → {"prompt": "ambient classical, calm, slow tempo, soft piano and strings, 1-2 minutes", "makeInstrumental": true, "sceneDescription": "quiet study environment"}
-- Busy street → {"prompt": "upbeat pop, energetic, fast tempo, synths and bass, 1-2 minutes", "makeInstrumental": false, "sceneDescription": "dynamic urban environment"}
-- Park/nature → {"prompt": "acoustic folk, peaceful, medium tempo, guitar and birds, 1-2 minutes", "makeInstrumental": true, "sceneDescription": "serene natural setting"}
-- Office → {"prompt": "minimal electronic, focused, medium tempo, soft synths, 1-2 minutes", "makeInstrumental": true, "sceneDescription": "work environment"}
+- Coffee shop → {"prompt": "smooth jazz, cozy, medium tempo, piano and light drums", "makeInstrumental": false, "sceneDescription": "social coffee shop setting"}
+- Library/study → {"prompt": "ambient classical, calm, slow tempo, soft piano and strings", "makeInstrumental": true, "sceneDescription": "quiet study environment"}
+- Busy street → {"prompt": "upbeat pop, energetic, fast tempo, synths and bass", "makeInstrumental": false, "sceneDescription": "dynamic urban environment"}
+- Park/nature → {"prompt": "acoustic folk, peaceful, medium tempo, guitar and birds", "makeInstrumental": true, "sceneDescription": "serene natural setting"}
+- Office → {"prompt": "minimal electronic, focused, medium tempo, soft synths", "makeInstrumental": true, "sceneDescription": "work environment"}
 
 Return ONLY the JSON, no extra text.`
             }
@@ -179,22 +177,22 @@ Return ONLY the JSON, no extra text.`
   private getFallbackPrompt(): { prompt: string; makeInstrumental: boolean; sceneDescription: string } {
     const fallbacks = [
       {
-        prompt: 'ambient instrumental, calm, medium tempo, soft piano, 1-2 minutes',
+        prompt: 'ambient instrumental, calm, medium tempo, soft piano',
         makeInstrumental: true,
         sceneDescription: 'Fallback - peaceful ambient setting'
       },
       {
-        prompt: 'smooth jazz, relaxed, slow tempo, piano and light drums, 1-2 minutes',
+        prompt: 'smooth jazz, relaxed, slow tempo, piano and light drums',
         makeInstrumental: false,
         sceneDescription: 'Fallback - social jazz setting'
       },
       {
-        prompt: 'acoustic folk, peaceful, medium tempo, guitar and strings, 1-2 minutes',
+        prompt: 'acoustic folk, peaceful, medium tempo, guitar and strings',
         makeInstrumental: true,
         sceneDescription: 'Fallback - natural peaceful setting'
       },
       {
-        prompt: 'minimal electronic, focused, medium tempo, soft synths, 1-2 minutes',
+        prompt: 'minimal electronic, focused, medium tempo, soft synths',
         makeInstrumental: true,
         sceneDescription: 'Fallback - work/focus environment'
       }

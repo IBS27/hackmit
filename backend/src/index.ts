@@ -9,6 +9,7 @@ import { claudeService } from './core/claude';
 import { sunoAPI } from './core/suno';
 import { imageBufferService } from './services/imageBufferService';
 import { ImageStreamSocketServer } from './sockets/imageStreamSocket';
+import { musicStorageService } from './services/musicStorageService';
 
 const app = express();
 const server = createServer(app);
@@ -116,12 +117,26 @@ app.post('/api/scene/analyze', async (req, res) => {
       make_instrumental: claudeResult.makeInstrumental
     });
 
-    // Step 3: Wait for Suno to complete (with extended timeout for music generation)
-    console.log('⏳ Waiting for music generation...');
-    const completedClip = await sunoAPI.waitForCompletion(sunoResult.id, 180000); // 3 minute timeout
+    // Step 3: Wait for Suno audio URL to be available (faster response)
+    console.log('⏳ Waiting for music to start streaming...');
+    const completedClip = await sunoAPI.waitForAudioUrl(sunoResult.id, 60000); // 1 minute timeout
 
     console.log('Audio URL:', completedClip.audio_url)
     console.log('Image URL:', completedClip.image_url)
+
+    // Store music data for retrieval by frontend
+    musicStorageService.storeMusic(deviceId, {
+      musicUrl: completedClip.audio_url!,
+      imageUrl: completedClip.image_url,
+      sceneDescription: claudeResult.sceneDescription,
+      title: completedClip.title,
+      prompt: claudeResult.prompt,
+      makeInstrumental: claudeResult.makeInstrumental,
+      clipId: completedClip.id,
+      imageId: bufferedImage.metadata.id,
+      processingTime: claudeResult.processingTime,
+      timestamp: new Date().toISOString()
+    });
 
     console.log(`✅ Full pipeline completed for device: ${deviceId}`);
 
@@ -129,6 +144,7 @@ app.post('/api/scene/analyze', async (req, res) => {
       success: true,
       sceneChanged: true,
       musicUrl: completedClip.audio_url,
+      imageUrl: completedClip.image_url,
       prompt: claudeResult.prompt,
       sceneDescription: claudeResult.sceneDescription,
       makeInstrumental: claudeResult.makeInstrumental,
@@ -234,6 +250,45 @@ app.delete('/api/buffer/clear/:deviceId', (req, res) => {
     });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Latest music endpoint for frontend
+app.get('/api/latest-music', (req, res) => {
+  try {
+    // For now, get the latest music from any device
+    // In a real app, you might filter by user or device
+    const allMusic = musicStorageService.getAllMusic();
+    const latestMusic = allMusic.length > 0 ? allMusic[0] : null;
+
+    if (latestMusic) {
+      res.json({
+        success: true,
+        data: {
+          musicUrl: latestMusic.musicUrl,
+          imageUrl: latestMusic.imageUrl,
+          sceneDescription: latestMusic.sceneDescription,
+          title: latestMusic.title,
+          prompt: latestMusic.prompt,
+          makeInstrumental: latestMusic.makeInstrumental,
+          timestamp: latestMusic.timestamp,
+          processingTime: latestMusic.processingTime
+        }
+      });
+    } else {
+      res.json({
+        success: true,
+        data: null,
+        message: 'No music available yet'
+      });
+    }
+  } catch (error: any) {
+    console.error('❌ Failed to get latest music:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve latest music',
+      message: error.message
+    });
   }
 });
 

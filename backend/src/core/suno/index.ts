@@ -143,9 +143,36 @@ class SunoHackMITAPI {
     throw new Error(`Timeout waiting for clip ${clipId} to complete`);
   }
 
+  async waitForAudioUrl(clipId: string, timeoutMs: number = 60000, pollIntervalMs: number = 2000): Promise<SunoClip> {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+      const clip = await this.getClip(clipId);
+
+      if (clip.status === 'error') {
+        throw new Error(`Generation failed: ${clip.error_message || 'Unknown error'}`);
+      }
+
+      if (clip.audio_url) {
+        console.log(`Clip ${clipId} audio URL available: ${clip.audio_url}`);
+        return clip;
+      }
+
+      console.log(`Clip ${clipId} status: ${clip.status} (waiting for audio URL)`);
+      await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+    }
+
+    throw new Error(`Timeout waiting for clip ${clipId} audio URL to become available`);
+  }
+
   async generateAndWait(request: SunoGenerateRequest, timeoutMs?: number): Promise<SunoClip> {
     const clip = await this.generateMusic(request);
     return this.waitForCompletion(clip.id, timeoutMs);
+  }
+
+  async generateAndWaitForStream(request: SunoGenerateRequest, timeoutMs?: number): Promise<SunoClip> {
+    const clip = await this.generateMusic(request);
+    return this.waitForAudioUrl(clip.id, timeoutMs);
   }
 }
 
@@ -162,7 +189,9 @@ export const sunoAPI = {
   generateMusicWithTopic: (topic: string, options?: Omit<SunoGenerateRequest, 'topic'>) => sunoAPI.instance.generateMusicWithTopic(topic, options),
   generateMusicWithTags: (tags: string | string[], topic?: string, options?: Omit<SunoGenerateRequest, 'tags' | 'topic'>) => sunoAPI.instance.generateMusicWithTags(tags, topic, options),
   generateAndWait: (request: SunoGenerateRequest, timeoutMs?: number) => sunoAPI.instance.generateAndWait(request, timeoutMs),
+  generateAndWaitForStream: (request: SunoGenerateRequest, timeoutMs?: number) => sunoAPI.instance.generateAndWaitForStream(request, timeoutMs),
   waitForCompletion: (clipId: string, timeoutMs?: number, pollIntervalMs?: number) => sunoAPI.instance.waitForCompletion(clipId, timeoutMs, pollIntervalMs),
+  waitForAudioUrl: (clipId: string, timeoutMs?: number, pollIntervalMs?: number) => sunoAPI.instance.waitForAudioUrl(clipId, timeoutMs, pollIntervalMs),
   getClip: (clipId: string) => sunoAPI.instance.getClip(clipId),
   getClips: (clipIds: string[]) => sunoAPI.instance.getClips(clipIds)
 };

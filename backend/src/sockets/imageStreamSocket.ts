@@ -3,6 +3,7 @@ import { Server } from 'http';
 import { imageBufferService } from '../services/imageBufferService';
 import { claudeService } from '../core/claude';
 import { sunoAPI } from '../core/suno';
+import { musicStorageService } from '../services/musicStorageService';
 
 interface StreamingSession {
   deviceId: string;
@@ -236,15 +237,30 @@ export class ImageStreamSocketServer {
         timestamp: new Date().toISOString()
       });
 
-      // Step 3: Wait for completion and notify
-      sunoAPI.waitForCompletion(sunoResult.id, 180000)
+      // Step 3: Wait for audio URL to be available and notify
+      sunoAPI.waitForAudioUrl(sunoResult.id, 60000)
         .then((completedClip) => {
+          // Store music data for retrieval by frontend
+          musicStorageService.storeMusic(deviceId, {
+            musicUrl: completedClip.audio_url!,
+            imageUrl: completedClip.image_url,
+            sceneDescription: claudeResult.sceneDescription,
+            title: completedClip.title,
+            prompt: claudeResult.prompt,
+            makeInstrumental: claudeResult.makeInstrumental,
+            clipId: completedClip.id,
+            imageId,
+            processingTime: claudeResult.processingTime,
+            timestamp: new Date().toISOString()
+          });
+
           socket.emit('music-ready', {
             deviceId,
             imageId,
             clipId: completedClip.id,
             title: completedClip.title,
             audioUrl: completedClip.audio_url,
+            imageUrl: completedClip.image_url,
             timestamp: new Date().toISOString()
           });
 
@@ -253,6 +269,7 @@ export class ImageStreamSocketServer {
             deviceId,
             title: completedClip.title,
             audioUrl: completedClip.audio_url,
+            imageUrl: completedClip.image_url,
             prompt: claudeResult.prompt
           });
         })
