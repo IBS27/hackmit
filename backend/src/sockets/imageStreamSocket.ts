@@ -217,6 +217,7 @@ export class ImageStreamSocketServer {
         imageId,
         prompt: claudeResult.prompt,
         sceneDescription: claudeResult.sceneDescription,
+        makeInstrumental: claudeResult.makeInstrumental,
         processingTime: claudeResult.processingTime,
         timestamp: new Date().toISOString()
       });
@@ -224,7 +225,7 @@ export class ImageStreamSocketServer {
       // Step 2: Generate music (async, don't wait)
       const sunoResult = await sunoAPI.generateMusicWithTopic(claudeResult.prompt, {
         tags: claudeResult.prompt,
-        make_instrumental: false
+        make_instrumental: claudeResult.makeInstrumental
       });
 
       socket.emit('music-generation-started', {

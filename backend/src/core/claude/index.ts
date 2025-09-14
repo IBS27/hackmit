@@ -14,6 +14,7 @@ interface ClaudeVisionResponse {
 export interface MusicPromptResult {
   prompt: string;
   sceneDescription: string;
+  makeInstrumental: boolean;
   confidence: number;
   generatedAt: string;
   processingTime: number;
@@ -39,7 +40,7 @@ export class ClaudeService {
       
       const response = await axios.post<ClaudeVisionResponse>(this.baseURL, {
         model: 'claude-3-haiku-20240307',
-        max_tokens: 150,
+        max_tokens: 250,
         messages: [{
           role: 'user',
           content: [
@@ -53,20 +54,34 @@ export class ClaudeService {
             },
             {
               type: 'text',
-              text: `Analyze this image and create a music prompt for Suno AI music generation.
+              text: `Analyze this image and create a music prompt for Suno AI music generation that will be 1-2 minutes long.
 
-Look at the environment and create a 15-second music prompt:
+Your task:
+1. Analyze the scene/environment in the image
+2. Create appropriate music prompt for the context
+3. Decide whether lyrics or instrumental music would be better
 
-Format: "[style/genre], [mood], [tempo], [key instruments]"
+DURATION: The generated song should be 1-2 minutes long (not longer).
+
+INSTRUMENTAL vs LYRICS DECISION:
+- Use INSTRUMENTAL for: work/study environments, libraries, offices, meditation spaces, nature scenes, peaceful settings, background ambiance
+- Use LYRICS for: social settings, cafes, restaurants, busy streets, entertainment venues, exercise/workout spaces, emotional/dramatic scenes
+
+Format your response as JSON:
+{
+  "prompt": "[style/genre], [mood], [tempo], [key instruments], 1-2 minutes",
+  "makeInstrumental": true/false,
+  "sceneDescription": "brief description of what you see"
+}
 
 Examples:
-- Coffee shop → "smooth jazz, cozy, medium tempo, piano and light drums"
-- Busy street → "upbeat pop, energetic, fast tempo, synths and bass"
-- Library/study → "ambient classical, calm, slow tempo, soft piano and strings"
-- Park/nature → "acoustic folk, peaceful, medium tempo, guitar and birds"
-- Office → "minimal electronic, focused, medium tempo, soft synths"
+- Coffee shop → {"prompt": "smooth jazz, cozy, medium tempo, piano and light drums, 1-2 minutes", "makeInstrumental": false, "sceneDescription": "social coffee shop setting"}
+- Library/study → {"prompt": "ambient classical, calm, slow tempo, soft piano and strings, 1-2 minutes", "makeInstrumental": true, "sceneDescription": "quiet study environment"}
+- Busy street → {"prompt": "upbeat pop, energetic, fast tempo, synths and bass, 1-2 minutes", "makeInstrumental": false, "sceneDescription": "dynamic urban environment"}
+- Park/nature → {"prompt": "acoustic folk, peaceful, medium tempo, guitar and birds, 1-2 minutes", "makeInstrumental": true, "sceneDescription": "serene natural setting"}
+- Office → {"prompt": "minimal electronic, focused, medium tempo, soft synths, 1-2 minutes", "makeInstrumental": true, "sceneDescription": "work environment"}
 
-Return ONLY the music prompt, no extra text.`
+Return ONLY the JSON, no extra text.`
             }
           ]
         }]
@@ -78,15 +93,16 @@ Return ONLY the music prompt, no extra text.`
         }
       });
 
-      const rawPrompt = response.data.content[0].text.trim();
-      const cleanPrompt = this.cleanMusicPrompt(rawPrompt);
+      const rawResponse = response.data.content[0].text.trim();
+      const parsedResult = this.parseClaudeResponse(rawResponse);
       const processingTime = Date.now() - startTime;
-      
-      console.log(`🎵 Generated music prompt (${processingTime}ms):`, cleanPrompt);
-      
+
+      console.log(`🎵 Generated music analysis (${processingTime}ms):`, parsedResult);
+
       return {
-        prompt: cleanPrompt,
-        sceneDescription: 'Generated from image analysis',
+        prompt: parsedResult.prompt,
+        sceneDescription: parsedResult.sceneDescription,
+        makeInstrumental: parsedResult.makeInstrumental,
         confidence: 0.85,
         generatedAt: new Date().toISOString(),
         processingTime
@@ -97,9 +113,11 @@ Return ONLY the music prompt, no extra text.`
       console.error('Claude API error:', error.response?.data || error.message);
       
       // Return fallback prompt
+      const fallback = this.getFallbackPrompt();
       return {
-        prompt: this.getFallbackPrompt(),
-        sceneDescription: 'Fallback - Claude analysis failed',
+        prompt: fallback.prompt,
+        sceneDescription: fallback.sceneDescription,
+        makeInstrumental: fallback.makeInstrumental,
         confidence: 0.1,
         generatedAt: new Date().toISOString(),
         processingTime
@@ -107,24 +125,81 @@ Return ONLY the music prompt, no extra text.`
     }
   }
 
+  private parseClaudeResponse(rawResponse: string): { prompt: string; makeInstrumental: boolean; sceneDescription: string } {
+    try {
+      // Try to parse as JSON
+      const parsed = JSON.parse(rawResponse);
+
+      if (parsed.prompt && typeof parsed.makeInstrumental === 'boolean' && parsed.sceneDescription) {
+        return {
+          prompt: this.cleanMusicPrompt(parsed.prompt),
+          makeInstrumental: parsed.makeInstrumental,
+          sceneDescription: parsed.sceneDescription
+        };
+      }
+    } catch (error) {
+      console.warn('Failed to parse Claude JSON response, falling back to text parsing');
+    }
+
+    // Fallback: try to extract info from non-JSON response
+    const cleanPrompt = this.cleanMusicPrompt(rawResponse);
+    const makeInstrumental = this.inferInstrumental(cleanPrompt);
+
+    return {
+      prompt: cleanPrompt,
+      makeInstrumental,
+      sceneDescription: 'Parsed from text response'
+    };
+  }
+
   private cleanMusicPrompt(rawPrompt: string): string {
     return rawPrompt
-      .replace(/^["']|["']$/g, '')    // Remove surrounding quotes
-      .replace(/\n/g, ' ')            // Remove newlines
-      .replace(/\s+/g, ' ')           // Normalize whitespace
-      .replace(/,\s*15\s*seconds?/i, '') // Remove "15 seconds" if Claude added it
+      .replace(/^["']|["']$/g, '')     // Remove surrounding quotes
+      .replace(/\n/g, ' ')             // Remove newlines
+      .replace(/\s+/g, ' ')            // Normalize whitespace
+      .replace(/,\s*15\s*seconds?/i, '') // Remove old "15 seconds" if present
       .trim()
       .toLowerCase();
   }
 
-  private getFallbackPrompt(): string {
+  private inferInstrumental(prompt: string): boolean {
+    // Keywords that suggest instrumental music
+    const instrumentalKeywords = ['ambient', 'classical', 'electronic', 'minimal', 'study', 'focus', 'meditation', 'calm', 'peaceful'];
+    // Keywords that suggest vocal music
+    const vocalKeywords = ['pop', 'rock', 'jazz', 'folk', 'energetic', 'upbeat', 'social'];
+
+    const lowerPrompt = prompt.toLowerCase();
+    const hasInstrumental = instrumentalKeywords.some(keyword => lowerPrompt.includes(keyword));
+    const hasVocal = vocalKeywords.some(keyword => lowerPrompt.includes(keyword));
+
+    // Default to instrumental if ambiguous, or if instrumental keywords are present
+    return hasInstrumental || !hasVocal;
+  }
+
+  private getFallbackPrompt(): { prompt: string; makeInstrumental: boolean; sceneDescription: string } {
     const fallbacks = [
-      'ambient instrumental, calm, medium tempo, soft piano',
-      'smooth jazz, relaxed, slow tempo, piano and light drums',
-      'acoustic folk, peaceful, medium tempo, guitar and strings',
-      'minimal electronic, focused, medium tempo, soft synths'
+      {
+        prompt: 'ambient instrumental, calm, medium tempo, soft piano, 1-2 minutes',
+        makeInstrumental: true,
+        sceneDescription: 'Fallback - peaceful ambient setting'
+      },
+      {
+        prompt: 'smooth jazz, relaxed, slow tempo, piano and light drums, 1-2 minutes',
+        makeInstrumental: false,
+        sceneDescription: 'Fallback - social jazz setting'
+      },
+      {
+        prompt: 'acoustic folk, peaceful, medium tempo, guitar and strings, 1-2 minutes',
+        makeInstrumental: true,
+        sceneDescription: 'Fallback - natural peaceful setting'
+      },
+      {
+        prompt: 'minimal electronic, focused, medium tempo, soft synths, 1-2 minutes',
+        makeInstrumental: true,
+        sceneDescription: 'Fallback - work/focus environment'
+      }
     ];
-    
+
     return fallbacks[Math.floor(Math.random() * fallbacks.length)];
   }
 

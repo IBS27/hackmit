@@ -42,7 +42,7 @@ class MyMentraOSApp extends AppServer {
       const photo = await session.camera.requestPhoto();
       await this.uploadPhotoToAPI(photo.buffer, photo.mimeType, userId);
       session.logger.info('looped')
-      setTimeout(() => this.photoCaptureLoop(session, userId), 5000);
+      setTimeout(() => this.photoCaptureLoop(session, userId), 10000);
     } catch (error) {
       console.error("Failed to capture photo:", error);
     }

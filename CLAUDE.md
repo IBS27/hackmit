@@ -24,10 +24,12 @@ The project uses a monorepo with workspaces:
 - Use Bun APIs: `Bun.serve()`, `bun:sqlite`, `Bun.redis`, built-in WebSocket
 - Bun automatically loads .env files
 
-**Backend workspace uses Node.js/npm with tsx:**
-- `npm run dev` for development with tsx watch
-- `npm run build` for TypeScript compilation
-- `npm run start` for production
+**Backend workspace uses Bun (not Node.js/npm):**
+- `bun run dev` for development with tsx watch
+- `bun run build` for TypeScript compilation
+- `bun run start` for production
+- `bun install` instead of `npm install`
+- Use Bun commands instead of npm commands
 
 ## Development Commands
 
@@ -40,6 +42,14 @@ npm run dev:mobile           # Start mobile-app only
 npm run build                # Build all workspaces
 npm run clean                # Clean all workspaces
 npm run install:all          # Install dependencies for all workspaces
+```
+
+### Backend (Uses Bun)
+```bash
+bun install                  # Install dependencies
+bun run dev                  # Development with tsx watch
+bun run build                # TypeScript compilation
+bun run start                # Run built application
 ```
 
 ### Smart Glasses App (Uses Bun)

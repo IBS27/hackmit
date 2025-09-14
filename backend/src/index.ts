@@ -92,7 +92,7 @@ app.post('/api/scene/analyze', async (req, res) => {
     console.log('🎵 Generating music with Suno...');
     const sunoResult = await sunoAPI.generateMusicWithTopic(claudeResult.prompt, {
       tags: claudeResult.prompt,
-      make_instrumental: false // Allow vocals for more variety
+      make_instrumental: claudeResult.makeInstrumental
     });
 
     // Step 3: Wait for Suno to complete (with extended timeout for music generation)
@@ -110,6 +110,7 @@ app.post('/api/scene/analyze', async (req, res) => {
       musicUrl: completedClip.audio_url,
       prompt: claudeResult.prompt,
       sceneDescription: claudeResult.sceneDescription,
+      makeInstrumental: claudeResult.makeInstrumental,
       clipId: completedClip.id,
       title: completedClip.title,
       imageId: bufferedImage.metadata.id,
@@ -132,8 +133,11 @@ app.post('/api/scene/analyze', async (req, res) => {
 // Legacy endpoint for backward compatibility
 app.post('/api/analyze-scene', async (req, res) => {
   console.log('⚠️  Using legacy endpoint, redirecting to /api/scene/analyze');
-  req.url = '/api/scene/analyze';
-  return app._router.handle(req, res);
+  // Forward the request to the new endpoint
+  const { imageBase64, deviceId, timestamp, mimeType, userId } = req.body;
+  const forwardedReq = { ...req, body: { imageBase64, deviceId, timestamp, mimeType, userId } };
+  forwardedReq.url = '/api/scene/analyze';
+  return app._router.handle(forwardedReq, res);
 });
 
 // Test endpoint for quick testing
@@ -149,8 +153,10 @@ app.post('/api/test-claude', async (req, res) => {
 
 app.post('/api/test-suno', async (req, res) => {
   try {
-    const { prompt } = req.body;
-    const result = await sunoAPI.generateMusicWithTopic(prompt || 'test music');
+    const { prompt, makeInstrumental } = req.body;
+    const result = await sunoAPI.generateMusicWithTopic(prompt || 'test music, 1-2 minutes', {
+      make_instrumental: makeInstrumental !== undefined ? makeInstrumental : true
+    });
     res.json({ success: true, result });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
