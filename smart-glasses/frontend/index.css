@@ -1,83 +1,87 @@
-body, html, #root {
+html, body, #root {
   height: 100%;
   margin: 0;
-  font-family: system-ui, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #0b0b0c;
-  color: white;
 }
 
+body {
+  background: #38B6FF;           
+  color: #000;                   
+  display: grid;
+  place-items: start center;     
+  padding-top: 48px;              
+}
+
+@font-face {
+  font-family: "Akzidenz Grotesk";
+  src: url("/fonts/AkzidenzGrotesk-Regular.woff2") format("woff2"),
+       url("/fonts/AkzidenzGrotesk-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --title-font: "Akzidenz Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* ====== APP ====== */
 .app {
   text-align: center;
+  display: grid;
+  gap: 18px;
 }
+
 
 .title {
-  font-size: 24px;
+  font-family: var(--title-font);
+  font-size: 26px;
   font-weight: 700;
-  margin-bottom: 60px; 
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  text-align: center;
-  font-family: "Helvetica Neue", sans-serif;
-  animation: colorShift 8s infinite linear, glowShift 6s infinite alternate;
+  color: #000;                   
+  margin: 0 0 28px;            
 }
 
-/* Subtle color cycling (different blue tones) */
-@keyframes colorShift {
-  0%   { color: #38B6FF; }   /* electric blue */
-  25%  { color: #1f78d1; }   /* deeper blue */
-  50%  { color: #4ecbff; }   /* lighter neon blue */
-  75%  { color: #0d47a1; }   /* dark blue */
-  100% { color: #38B6FF; }
-}
-
-/* Subtle glowing effect */
-@keyframes glowShift {
-  from {
-    text-shadow: 0 0 4px rgba(56, 182, 255, 0.4),
-                 0 0 8px rgba(56, 182, 255, 0.2);
-  }
-  to {
-    text-shadow: 0 0 8px rgba(56, 182, 255, 0.6),
-                 0 0 16px rgba(56, 182, 255, 0.3);
-  }
-}
-
-
+/* Square cover card */
 .cover-container {
   position: relative;
-  width: 300px;
-  height: 300px;
-  border: 2px solid #444;
-  border-radius: 8px;
+  width: min(78vw, 320px);
+  aspect-ratio: 1 / 1;
+  border: 1.5px solid rgba(0,0,0,0.45);  
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
+  background: #101114;            
 }
 
 .cover {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 24px;
-  font-weight: bold;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+  font-weight: 800;
+  font-size: 22px;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity .2s ease;
 }
+.cover-container:hover .overlay { opacity: 1; }
+@media (hover: none) { .overlay { opacity: 1; background: rgba(0,0,0,0.25); } }
 
-.cover-container:hover .overlay {
-  opacity: 1;
+/* Description placeholder under the image */
+.desc {
+  font-family: var(--title-font);
+  font-size: 20px;
+  color: rgba(0,0,0,0.85);
+  max-width: 320px;
+  margin: 6px auto 0;
+  line-height: 1.4;
 }
