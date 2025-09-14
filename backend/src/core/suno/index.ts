@@ -161,7 +161,10 @@ export const sunoAPI = {
   generateMusic: (request: SunoGenerateRequest) => sunoAPI.instance.generateMusic(request),
   generateMusicWithTopic: (topic: string, options?: Omit<SunoGenerateRequest, 'topic'>) => sunoAPI.instance.generateMusicWithTopic(topic, options),
   generateMusicWithTags: (tags: string | string[], topic?: string, options?: Omit<SunoGenerateRequest, 'tags' | 'topic'>) => sunoAPI.instance.generateMusicWithTags(tags, topic, options),
-  generateAndWait: (request: SunoGenerateRequest, timeoutMs?: number) => sunoAPI.instance.generateAndWait(request, timeoutMs)
+  generateAndWait: (request: SunoGenerateRequest, timeoutMs?: number) => sunoAPI.instance.generateAndWait(request, timeoutMs),
+  waitForCompletion: (clipId: string, timeoutMs?: number, pollIntervalMs?: number) => sunoAPI.instance.waitForCompletion(clipId, timeoutMs, pollIntervalMs),
+  getClip: (clipId: string) => sunoAPI.instance.getClip(clipId),
+  getClips: (clipIds: string[]) => sunoAPI.instance.getClips(clipIds)
 };
 export { SunoHackMITAPI };
 export default SunoHackMITAPI;
