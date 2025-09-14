@@ -9,16 +9,15 @@
     "shared"
   ],
   "scripts": {
-  "dev:backend": "bun run --cwd backend dev",
-  "dev:frontend": "bun run --cwd smart-glasses dev",
-  "dev": "concurrently \"bun run dev:backend\" \"bun run dev:frontend\"",
-  
-  "build": "bun run build --workspaces",
-  "clean": "bun run clean --workspaces",
-  "docker:up": "docker-compose up -d",
-  "docker:down": "docker-compose down",
-  "install:all": "bun install --workspaces"
-},
+    "dev:backend": "bun run --cwd backend dev",
+    "dev:frontend": "bun run --cwd smart-glasses dev",
+    "dev": "concurrently \"bun run dev:backend\" \"bun run dev:frontend\"",
+    "build": "bun run build --workspaces",
+    "clean": "bun run clean --workspaces",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "install:all": "bun install --workspaces"
+  },
   "devDependencies": {
     "concurrently": "^8.2.2",
     "typescript": "^5.2.2"
@@ -26,5 +25,8 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "@mentra/react": "^2.0.2"
   }
 }

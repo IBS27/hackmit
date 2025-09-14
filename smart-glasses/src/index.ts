@@ -1,4 +1,6 @@
 import { AppServer, AppSession } from "@mentra/sdk";
+import path from 'path';
+import express from 'express';
 
 // Load configuration from environment variables
 const PACKAGE_NAME =
@@ -16,6 +18,51 @@ if (!MENTRAOS_API_KEY) {
  * Extends AppServer to handle sessions and user interactions
  */
 class MyMentraOSApp extends AppServer {
+  private latestMusicData: any = null;
+
+  constructor(options: any) {
+    super(options);
+    this.setupAPI();
+    this.setupStaticFiles();
+  }
+
+  private setupAPI(): void {
+    // Add API endpoint to serve latest music data
+    this.app.get('/api/latest-music', (req, res) => {
+      res.json({
+        success: true,
+        data: this.latestMusicData,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    console.log(`🎵 Music API integrated into AppServer`);
+    console.log(`📡 Latest music endpoint: http://localhost:${PORT}/api/latest-music`);
+  }
+
+  private setupStaticFiles(): void {
+    if (process.env.NODE_ENV === 'production') {
+      // Production: serve built React frontend
+      const frontendPath = path.join(__dirname, '../dist/frontend');
+      this.app.use(express.static(frontendPath));
+
+      // Catch-all route for React routing (SPA)
+      this.app.get('*', (req, res) => {
+        if (!req.path.startsWith('/api')) {
+          res.sendFile(path.join(frontendPath, 'index.html'));
+        }
+      });
+
+      console.log(`📱 Frontend served from: ${frontendPath}`);
+    } else {
+      // Development: Frontend handled by Vite dev server with proxy to this API
+      console.log(`🔧 Development mode:`);
+      console.log(`   📡 API server: http://localhost:${PORT}/api/*`);
+      console.log(`   📱 Frontend: Run 'bun run dev:frontend' (port 5173 with proxy)`);
+      console.log(`   🔄 Or use 'npm run dev' from root for concurrent mode`);
+    }
+  }
+
   /**
    * Handle new session connections
    * @param session - The app session instance
@@ -81,12 +128,24 @@ class MyMentraOSApp extends AppServer {
       console.log('✅ Photo uploaded and processed:', {
         success: result.success,
         musicUrl: result.musicUrl ? 'Generated' : 'Not available',
+        prompt: result.prompt,
+        imageUrl: result.imageUrl,
         clipId: result.clipId
       });
 
-      // If we got a music URL, could play it here in the future
-      if (result.musicUrl) {
-        console.log('🎵 Music generated:', result.title);
+      // If we got a music URL, store it for the API endpoint
+      if (result.success && result.musicUrl) {
+        this.latestMusicData = {
+          musicUrl: result.musicUrl,
+          imageUrl: result.imageUrl,
+          sceneDescription: result.sceneDescription,
+          title: result.title,
+          prompt: result.prompt,
+          makeInstrumental: result.makeInstrumental,
+          timestamp: result.timestamp,
+          processingTime: result.processingTime
+        };
+        console.log('🎵 Music generated and stored:', result.title);
       }
 
     } catch (error) {

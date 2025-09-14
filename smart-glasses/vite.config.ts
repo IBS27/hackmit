@@ -7,9 +7,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
-  root: resolve(__dirname, 'frontend'),        // your App.tsx, main.tsx here
+  root: resolve(__dirname, 'src/frontend'),        // your App.tsx, main.tsx here
   build: {
-    outDir: resolve(__dirname, '../dist/frontend'),
+    outDir: resolve(__dirname, 'dist/frontend'),
     emptyOutDir: true
   },
   server: {
@@ -21,6 +21,6 @@ export default defineConfig({
     }
   },
   resolve: {
-    alias: { '@': resolve(__dirname, 'frontend') }
+    alias: { '@': resolve(__dirname, 'src/frontend') }
   }
 });

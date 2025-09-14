@@ -13,6 +13,7 @@
     "preview": "bunx vite preview"
   },
   "dependencies": {
+    "@mentra/react": "^2.0.2",
     "@mentra/sdk": "latest",
     "ejs": "^3.1.10",
     "react": "^18.3.1",
