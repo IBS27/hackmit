@@ -1,0 +1,83 @@
+body, html, #root {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #0b0b0c;
+  color: white;
+}
+
+.app {
+  text-align: center;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 60px; 
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  font-family: "Helvetica Neue", sans-serif;
+  animation: colorShift 8s infinite linear, glowShift 6s infinite alternate;
+}
+
+/* Subtle color cycling (different blue tones) */
+@keyframes colorShift {
+  0%   { color: #38B6FF; }   /* electric blue */
+  25%  { color: #1f78d1; }   /* deeper blue */
+  50%  { color: #4ecbff; }   /* lighter neon blue */
+  75%  { color: #0d47a1; }   /* dark blue */
+  100% { color: #38B6FF; }
+}
+
+/* Subtle glowing effect */
+@keyframes glowShift {
+  from {
+    text-shadow: 0 0 4px rgba(56, 182, 255, 0.4),
+                 0 0 8px rgba(56, 182, 255, 0.2);
+  }
+  to {
+    text-shadow: 0 0 8px rgba(56, 182, 255, 0.6),
+                 0 0 16px rgba(56, 182, 255, 0.3);
+  }
+}
+
+
+.cover-container {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  border: 2px solid #444;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cover-container:hover .overlay {
+  opacity: 1;
+}
