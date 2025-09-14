@@ -15,7 +15,10 @@ body {
 .app {
   text-align: center;
   display: grid;
-  gap: 18px;
+  gap: 20px;
+  justify-items: center;
+  max-width: min(78vw, 320px);
+  margin: 0 auto;
 }
 
 .title {
@@ -25,19 +28,34 @@ body {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: #000;
-  margin: 0 0 22px;
+  margin: 0;
+}
+
+.status {
+  font-family: "Arimo", system-ui, sans-serif;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.7);
+  text-align: center;
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  width: fit-content;
+  justify-self: center;
 }
 
 /* Square cover card */
 .cover-container {
   position: relative;
-  width: min(78vw, 320px);
+  width: 100%;
   aspect-ratio: 1 / 1;
-  border: 1.5px solid rgba(0,0,0,0.45);  
+  border: 1.5px solid rgba(0,0,0,0.45);
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  background: #101114;            
+  background: #101114;
+  justify-self: center;
 }
 
 .cover {
@@ -64,20 +82,38 @@ body {
 
 /* Description placeholder under the image */
 .desc {
-  font-family: "Arimo", system-ui, sans-serif;  
+  font-family: "Arimo", system-ui, sans-serif;
   font-size: 18px;
   font-weight: 400;
   color: rgba(0, 0, 0, 0.9);
-
-  /* Box */
   background: #fff;
   border: 2px solid #000;
   border-radius: 12px;
   padding: 12px 16px;
   text-align: center;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  width: 100%;
+  margin: 0;
+  justify-self: center;
+}
 
-  /* Make the box align with the image width */
-  width: min(78vw, 320px);
-  margin: 12px auto 0;
+/* Music info section */
+.music-info {
+  font-family: "Arimo", system-ui, sans-serif;
+  text-align: center;
+  width: 100%;
+  justify-self: center;
+}
+
+.music-info .title {
+  font-size: 16px;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.9);
+  margin-bottom: 5px;
+}
+
+.music-info .details {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.7);
+  opacity: 0.8;
 }

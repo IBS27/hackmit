@@ -121,11 +121,11 @@ export default function App() {
 
       {/* Music info */}
       {musicData && (
-        <div style={{ textAlign: 'center', marginTop: '15px', fontSize: '14px' }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+        <div className="music-info">
+          <div className="title">
             {musicData.title}
           </div>
-          <div style={{ opacity: 0.7 }}>
+          <div className="details">
             {musicData.makeInstrumental ? '🎼 Instrumental' : '🎤 With vocals'} •
             {Math.round(musicData.processingTime / 1000)}s to generate
           </div>
