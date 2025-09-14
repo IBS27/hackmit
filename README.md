@@ -1,3 +1,2 @@
-# Atmosphere
-
+<img width="958" height="532" alt="project-pr-Y6YUvRdWucfUGcS" src="https://github.com/user-attachments/assets/d5d5f406-19b3-4f44-8ebb-291c8fab1c96" />
 Atmosphere automatically creates the perfect soundtrack for your life. Put on smart glasses and walk around — the system sees what you see and generates music that matches your environment in real time. Walk into a coffee shop and hear smooth jazz. Step outside into a busy street, and energetic beats kick in. Enter a quiet library, and ambient study music begins. Atmosphere can capture and create custom music for any moment.
