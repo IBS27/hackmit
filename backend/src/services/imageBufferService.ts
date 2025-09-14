@@ -125,7 +125,7 @@ export class ImageBufferService {
   /**
    * Check if scene has changed significantly
    */
-  async detectSceneChange(deviceId: string, threshold: number = 0.3): Promise<boolean> {
+  async detectSceneChange(deviceId: string, threshold: number = 0.7): Promise<boolean> {
     const recent = this.getRecentImages(deviceId, 2);
 
     if (recent.length < 2) {

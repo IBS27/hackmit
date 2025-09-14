@@ -38,7 +38,7 @@ export class ClaudeService {
       console.log('🤖 Analyzing image with Claude Vision...');
       
       const response = await axios.post<ClaudeVisionResponse>(this.baseURL, {
-        model: 'claude-3-sonnet-20240229',
+        model: 'claude-3-haiku-20240307',
         max_tokens: 150,
         messages: [{
           role: 'user',
@@ -72,7 +72,7 @@ Return ONLY the music prompt, no extra text.`
         }]
       }, {
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          'x-api-key': this.apiKey,
           'Content-Type': 'application/json',
           'anthropic-version': '2023-06-01'
         }

@@ -40,7 +40,7 @@ class MyMentraOSApp extends AppServer {
   protected async photoCaptureLoop(session: AppSession, userId: string): Promise<void> {
     try {
       const photo = await session.camera.requestPhoto();
-      await this.uploadPhotoToAPI(photo.buffer, photo.mimeType);
+      await this.uploadPhotoToAPI(photo.buffer, photo.mimeType, userId);
       session.logger.info('looped')
       setTimeout(() => this.photoCaptureLoop(session, userId), 5000);
     } catch (error) {
@@ -48,8 +48,51 @@ class MyMentraOSApp extends AppServer {
     }
   }
 
-  private async uploadPhotoToAPI(buffer: Buffer, mimeType: string): Promise<void> {
-    // TODO: Implement photo upload to API
+  private async uploadPhotoToAPI(buffer: Buffer, mimeType: string, userId: string): Promise<void> {
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+
+    try {
+      // Convert buffer to base64 for JSON transmission
+      const base64Image = buffer.toString('base64');
+
+      const payload = {
+        imageBase64: base64Image,
+        deviceId: process.env.DEVICE_ID || 'mentra_glasses_001',
+        timestamp: new Date().toISOString(),
+        mimeType: mimeType,
+        userId: userId
+      };
+
+      const response = await fetch(`${backendUrl}/api/scene/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mentra-SmartGlasses/1.0'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        throw new Error(`Backend responded with status: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json().catch(() => ({ status: 'received' }));
+      console.log('✅ Photo uploaded and processed:', {
+        success: result.success,
+        musicUrl: result.musicUrl ? 'Generated' : 'Not available',
+        clipId: result.clipId
+      });
+
+      // If we got a music URL, could play it here in the future
+      if (result.musicUrl) {
+        console.log('🎵 Music generated:', result.title);
+      }
+
+    } catch (error) {
+      console.error('❌ Failed to upload photo:', error);
+      // Don't throw - we want the capture loop to continue
+    }
   }
 }
 

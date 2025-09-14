@@ -99,6 +99,9 @@ app.post('/api/scene/analyze', async (req, res) => {
     console.log('⏳ Waiting for music generation...');
     const completedClip = await sunoAPI.waitForCompletion(sunoResult.id, 180000); // 3 minute timeout
 
+    console.log('Audio URL:', completedClip.audio_url)
+    console.log('Image URL:', completedClip.image_url)
+
     console.log(`✅ Full pipeline completed for device: ${deviceId}`);
 
     res.json({
@@ -211,7 +214,7 @@ app.delete('/api/buffer/clear/:deviceId', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Soundscape AI Backend running on port ${PORT}`);
   console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🔍 Main endpoint: http://localhost:${PORT}/api/analyze-scene`);
+  console.log(`🔍 Main endpoint: http://localhost:${PORT}/api/scene/analyze`);
 });
 
 export default app;
