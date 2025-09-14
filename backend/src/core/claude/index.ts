@@ -24,8 +24,8 @@ export class ClaudeService {
   private baseURL: string = 'https://api.anthropic.com/v1/messages';
 
   constructor() {
-    this.apiKey = (globalThis as any).process?.env?.CLAUDE_API_KEY || '';
-    
+    this.apiKey = process.env.CLAUDE_API_KEY || '';
+
     if (!this.apiKey) {
       throw new Error('CLAUDE_API_KEY environment variable is required');
     }
@@ -137,5 +137,14 @@ Return ONLY the music prompt, no extra text.`
  // }
 }
 
-// Export default instance
-export const claudeService = new ClaudeService();
+// Export lazy-loaded instance
+let _claudeService: ClaudeService | null = null;
+export const claudeService = {
+  get instance() {
+    if (!_claudeService) {
+      _claudeService = new ClaudeService();
+    }
+    return _claudeService;
+  },
+  generateMusicFromImage: (imageBase64: string) => claudeService.instance.generateMusicFromImage(imageBase64)
+};

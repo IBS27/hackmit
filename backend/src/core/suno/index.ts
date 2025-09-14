@@ -149,6 +149,19 @@ class SunoHackMITAPI {
   }
 }
 
-export const sunoAPI = new SunoHackMITAPI();
+// Export lazy-loaded instance
+let _sunoAPI: SunoHackMITAPI | null = null;
+export const sunoAPI = {
+  get instance() {
+    if (!_sunoAPI) {
+      _sunoAPI = new SunoHackMITAPI();
+    }
+    return _sunoAPI;
+  },
+  generateMusic: (request: SunoGenerateRequest) => sunoAPI.instance.generateMusic(request),
+  generateMusicWithTopic: (topic: string, options?: Omit<SunoGenerateRequest, 'topic'>) => sunoAPI.instance.generateMusicWithTopic(topic, options),
+  generateMusicWithTags: (tags: string | string[], topic?: string, options?: Omit<SunoGenerateRequest, 'tags' | 'topic'>) => sunoAPI.instance.generateMusicWithTags(tags, topic, options),
+  generateAndWait: (request: SunoGenerateRequest, timeoutMs?: number) => sunoAPI.instance.generateAndWait(request, timeoutMs)
+};
 export { SunoHackMITAPI };
 export default SunoHackMITAPI;
